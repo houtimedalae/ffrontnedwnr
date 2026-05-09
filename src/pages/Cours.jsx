@@ -18,8 +18,8 @@ const Courses = () => {
     const fetchData = async () => {
       try {
         const [coursesRes, categoriesRes] = await Promise.all([
-          axios.get("https://backendwnr2.onrender.com/api/courses/api/courses"),
-          axios.get("https://backendwnr2.onrender.com/api/courses/api/categories"),
+          axios.get("https://backendwnr2.onrender.com/api/courses"),
+          axios.get("https://backendwnr2.onrender.com/api/categories"),
         ]);
         setCourses(coursesRes.data);
         setCategories(["Toutes", ...categoriesRes.data.map((c) => c.name)]);
@@ -45,7 +45,7 @@ const Courses = () => {
     if (!selectedCourse) return;
 
     try {
-      await axios.post("https://backendwnr2.onrender.com/api/courses/api/preinscriptions", {
+      await axios.post("https://backendwnr2.onrender.com/api/preinscriptions", {
         studentName: form.name,
         phone: form.phone,
         email: form.email,
