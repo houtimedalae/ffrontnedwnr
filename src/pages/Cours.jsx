@@ -117,6 +117,11 @@ const Courses = () => {
                   ? course.description.slice(0, 90) + "..."
                   : course.description}
               </p>
+              <p className="text-gray-600 text-sm sm:text-base flex-grow">
+                {course.hours.length > 90
+                  ? course.hours.slice(0, 90) + "..."
+                  : course.hours}
+              </p>
               <div className="mt-5">
                 <p className="text-orange-500 font-bold text-lg mb-3">{course.price} DA</p>
                 <button
