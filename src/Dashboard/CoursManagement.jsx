@@ -46,7 +46,7 @@ export default function CoursManagement() {
         form
       );
     } else {
-      await axios.post("http://localhost:5000/api/courses", form);
+      await axios.post("https://backendwnr2.onrender.com/api/courses", form);
     }
 
     setForm({ title: "", description: "", price: "", hours: "", category: "" });
@@ -55,7 +55,7 @@ export default function CoursManagement() {
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`https://backendwnr2.onrender.com/api/courses/api/courses/${id}`);
+    await axios.delete(`https://backendwnr2.onrender.com/api/courses/${id}`);
     fetchCourses();
   };
 
