@@ -12,7 +12,7 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    fetch("https://backendwnr2.onrender.com/api/courses/api/dashboard-stats")
+    fetch("https://backendwnr2.onrender.com/api/dashboard-stats")
       .then((res) => res.json())
       .then((data) => setStats(data));
   }, []);
