@@ -9,8 +9,8 @@ export default function PreInscriptions() {
   useEffect(() => {
     const fetchData = async () => {
       const [preRes, courseRes] = await Promise.all([
-        axios.get("https://backendwnr2.onrender.com/api/courses/api/preinscriptions"),
-        axios.get("https://backendwnr2.onrender.com/api/courses/api/courses"),
+        axios.get("https://backendwnr2.onrender.com/api/preinscriptions"),
+        axios.get("https://backendwnr2.onrender.com/api/courses"),
       ]);
 
       setData(preRes.data);
@@ -26,7 +26,7 @@ export default function PreInscriptions() {
   };
 
   const handleValidate = async (id) => {
-    await axios.put(`https://backendwnr2.onrender.com/api/courses/api/preinscriptions/${id}`, {
+    await axios.put(`https://backendwnr2.onrender.com/api/preinscriptions/${id}`, {
       validated: 1,
     });
 
@@ -39,7 +39,7 @@ export default function PreInscriptions() {
 
   const handleDelete = async (id) => {
     await axios.delete(
-      `https://backendwnr2.onrender.com/api/courses/api/preinscriptions/${id}`
+      `https://backendwnr2.onrender.com/api/preinscriptions/${id}`
     );
 
     setData((prev) => prev.filter((p) => p.id !== id));
