@@ -1,18 +1,21 @@
-// src/Dashboard/Layout.jsx
 import React from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 
 export default function Layout() {
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar fixe */}
+    <div className="bg-gray-50">
+
+      {/* SIDEBAR FIXE */}
       <Sidebar />
 
-      {/* Contenu principal du dashboard */}
-      <main className="flex-1 p-6 overflow-auto">
-        <Outlet /> {/* Ici s’affichent les pages enfants : DashboardHome, CoursManagement, etc. */}
+      {/* CONTENU AVEC MARGE */}
+      <main className="ml-60 min-h-screen p-6 overflow-y-auto">
+
+        <Outlet />
+
       </main>
+
     </div>
   );
 }

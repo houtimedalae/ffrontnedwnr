@@ -49,7 +49,7 @@ const Courses = () => {
         studentName: form.name,
         phone: form.phone,
         email: form.email,
-        courseId: selectedCourse.id,
+        courseId: selectedCourse?.id,
       });
 
       setMessage("✅ Préinscription envoyée !");

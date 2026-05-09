@@ -1,114 +1,167 @@
-// src/Dashboard/PreInscriptions.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 export default function PreInscriptions() {
-  const [preinscriptions, setPreinscriptions] = useState([]);
+  const [data, setData] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [search, setSearch] = useState("");
 
-  // Charger préinscriptions
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const [preRes, coursesRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/preinscriptions"),
-          axios.get("http://localhost:5000/api/courses"),
-        ]);
-        setPreinscriptions(preRes.data);
-        setCourses(coursesRes.data);
-      } catch (err) {
-        console.error(err);
-      }
+      const [preRes, courseRes] = await Promise.all([
+        axios.get("http://localhost:5000/api/preinscriptions"),
+        axios.get("http://localhost:5000/api/courses"),
+      ]);
+
+      setData(preRes.data);
+      setCourses(courseRes.data);
     };
+
     fetchData();
   }, []);
 
-  // Trouver le nom du cours
-  const getCourseName = (courseId) => {
-    const course = courses.find((c) => c.id === courseId);
-    return course ? course.title : "Cours inconnu";
+  const getCourseName = (id) => {
+    const c = courses.find((x) => x.id === id);
+    return c ? c.title : "—";
   };
 
-  // Valider préinscription
   const handleValidate = async (id) => {
-    try {
-      await axios.put(`http://localhost:5000/api/preinscriptions/${id}`, {
-        validated: true, // on marque comme validé
-      });
-      setPreinscriptions((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, validated: true } : p))
-      );
-    } catch (err) {
-      console.error(err);
-    }
+    await axios.put(`http://localhost:5000/api/preinscriptions/${id}`, {
+      validated: 1,
+    });
+
+    setData((prev) =>
+      prev.map((p) =>
+        p.id === id ? { ...p, validated: 1 } : p
+      )
+    );
   };
 
-  // Supprimer préinscription
   const handleDelete = async (id) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/preinscriptions/${id}`);
-      setPreinscriptions((prev) => prev.filter((p) => p.id !== id));
-    } catch (err) {
-      console.error(err);
-    }
+    await axios.delete(
+      `http://localhost:5000/api/preinscriptions/${id}`
+    );
+
+    setData((prev) => prev.filter((p) => p.id !== id));
   };
+
+  const filtered = data.filter(
+    (p) =>
+      p.studentName.toLowerCase().includes(search.toLowerCase()) ||
+      p.email.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6">Pré-inscriptions</h1>
+    <div className="p-6 bg-[#f6f7fb] min-h-screen">
 
-      {preinscriptions.length === 0 ? (
-        <p>Aucune pré-inscription pour le moment.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full border border-gray-300 rounded-lg">
-            <thead className="bg-orange-100">
-              <tr>
-                <th className="px-4 py-2 border">Nom</th>
-                <th className="px-4 py-2 border">Téléphone</th>
-                <th className="px-4 py-2 border">Email</th>
-                <th className="px-4 py-2 border">Cours</th>
-                <th className="px-4 py-2 border">Status</th>
-                <th className="px-4 py-2 border">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {preinscriptions.map((p) => (
-                <tr
-                  key={p.id}
-                  className={`text-center ${
-                    p.validated ? "bg-green-50" : ""
-                  }`}
-                >
-                  <td className="px-4 py-2 border">{p.studentName}</td>
-                  <td className="px-4 py-2 border">{p.phone}</td>
-                  <td className="px-4 py-2 border">{p.email}</td>
-                  <td className="px-4 py-2 border">{getCourseName(p.courseId)}</td>
-                  <td className="px-4 py-2 border">
-                    {p.validated ? "✅ Validée" : "❌ Non validée"}
-                  </td>
-                  <td className="px-4 py-2 border flex justify-center gap-2">
-                    {!p.validated && (
-                      <button
-                        onClick={() => handleValidate(p.id)}
-                        className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                      >
-                        Valider
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleDelete(p.id)}
-                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                    >
-                      Supprimer
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-5">
+
+        <div>
+          <h1 className="text-xl font-bold text-gray-800">
+            Préinscriptions
+          </h1>
+          <p className="text-sm text-gray-500">
+            Gestion des demandes étudiants
+          </p>
         </div>
-      )}
+
+        <input
+          placeholder="Rechercher..."
+          className="border px-3 py-2 rounded-lg text-sm w-64"
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+      </div>
+
+      {/* TABLE CARD */}
+      <div className="bg-white border rounded-xl overflow-hidden">
+
+        <table className="w-full text-sm">
+
+          <thead className="bg-orange-500 text-white text-xs uppercase">
+
+            <tr>
+              <th className="p-3 text-left">Nom</th>
+              <th>Email</th>
+              <th>Téléphone</th>
+              <th>Cours</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th className="text-right pr-4">Actions</th>
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            {filtered.map((p) => (
+              <tr
+                key={p.id}
+                className="border-b hover:bg-gray-50"
+              >
+
+                <td className="p-3 font-medium">
+                  {p.studentName}
+                </td>
+
+                <td>{p.email}</td>
+
+                <td>{p.phone}</td>
+
+                <td className="text-gray-600">
+                  {getCourseName(p.courseId)}
+                </td>
+
+                <td className="text-gray-500 text-xs">
+                  {p.createdAt
+                    ? new Date(p.createdAt).toLocaleString()
+                    : "-"}
+                </td>
+
+                {/* STATUS */}
+                <td>
+                  {p.validated == 1 ? (
+                    <span className="text-green-600 font-semibold">
+                      Validée
+                    </span>
+                  ) : (
+                    <span className="text-red-500 font-semibold">
+                      En attente
+                    </span>
+                  )}
+                </td>
+
+                {/* ACTIONS */}
+                <td className="text-right pr-4">
+
+                  {p.validated != 1 && (
+                    <button
+                      onClick={() => handleValidate(p.id)}
+                      className="text-green-600 text-xs mr-3"
+                    >
+                      Valider
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => handleDelete(p.id)}
+                    className="text-red-500 text-xs"
+                  >
+                    Supprimer
+                  </button>
+
+                </td>
+
+              </tr>
+            ))}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
     </div>
   );
 }

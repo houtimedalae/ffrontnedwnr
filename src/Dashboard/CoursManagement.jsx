@@ -1,11 +1,13 @@
-// src/Dashboard/CoursManagement.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { motion } from "framer-motion";
 
 export default function CoursManagement() {
   const [courses, setCourses] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+
+  const perPage = 10;
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -13,230 +15,208 @@ export default function CoursManagement() {
     hours: "",
     category: "",
   });
-  const [catName, setCatName] = useState("");
-  const [editingId, setEditingId] = useState(null);
-  const [message, setMessage] = useState("");
 
-  // Charger courses et categories
+  const [editingId, setEditingId] = useState(null);
+
   const fetchCourses = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/api/courses");
-      setCourses(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-  const fetchCategories = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/api/categories");
-      setCategories(res.data);
-    } catch (err) {
-      console.error(err);
-    }
+    const res = await axios.get("http://localhost:5000/api/courses");
+    setCourses(res.data);
   };
 
   useEffect(() => {
     fetchCourses();
-    fetchCategories();
   }, []);
 
-  // Ajouter ou modifier un cours
+  const filtered = courses.filter((c) =>
+    c.title.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filtered.length / perPage);
+  const current = filtered.slice(
+    (page - 1) * perPage,
+    page * perPage
+  );
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      if (editingId) {
-        await axios.put(`http://localhost:5000/api/courses/${editingId}`, form);
-        setMessage("✅ Cours modifié avec succès !");
-      } else {
-        await axios.post("http://localhost:5000/api/courses", form);
-        setMessage("✅ Cours ajouté avec succès !");
-      }
-      setForm({ title: "", description: "", price: "", hours: "", category: "" });
-      setEditingId(null);
-      fetchCourses();
-    } catch (err) {
-      console.error(err);
-      setMessage("❌ Erreur lors de l'opération.");
+
+    if (editingId) {
+      await axios.put(
+        `http://localhost:5000/api/courses/${editingId}`,
+        form
+      );
+    } else {
+      await axios.post("http://localhost:5000/api/courses", form);
     }
+
+    setForm({ title: "", description: "", price: "", hours: "", category: "" });
+    setEditingId(null);
+    fetchCourses();
   };
 
-  // Supprimer un cours
   const handleDelete = async (id) => {
-    if (!window.confirm("Supprimer ce cours ?")) return;
-    try {
-      await axios.delete(`http://localhost:5000/api/courses/${id}`);
-      setMessage("✅ Cours supprimé !");
-      fetchCourses();
-    } catch (err) {
-      console.error(err);
-      setMessage("❌ Erreur lors de la suppression.");
-    }
+    await axios.delete(`http://localhost:5000/api/courses/${id}`);
+    fetchCourses();
   };
 
-  // Préparer la modification
-  const handleEdit = (course) => {
-    setForm({
-      title: course.title,
-      description: course.description,
-      price: course.price,
-      hours: course.hours,
-      category: course.category,
-    });
-    setEditingId(course.id || course._id);
-  };
-
-  // Ajouter une catégorie
-  const handleAddCategory = async () => {
-    if (!catName) return;
-    try {
-      await axios.post("http://localhost:5000/api/categories", { name: catName });
-      setCatName("");
-      fetchCategories();
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // Supprimer catégorie
-  const handleDeleteCategory = async (id) => {
-    if (!window.confirm("Supprimer cette catégorie ?")) return;
-    try {
-      await axios.delete(`http://localhost:5000/api/categories/${id}`);
-      fetchCategories();
-    } catch (err) {
-      console.error(err);
-    }
+  const handleEdit = (c) => {
+    setForm(c);
+    setEditingId(c.id);
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6 text-orange-600">Gestion des cours</h1>
+    <div className="p-6 bg-[#f6f7fb] min-h-screen">
 
-      {/* Formulaire cours */}
-      <form onSubmit={handleSubmit} className="mb-6 p-4 bg-white rounded shadow space-y-3">
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-6">
+
+        <div>
+          <h1 className="text-xl font-bold text-gray-800">
+            Gestion des cours
+          </h1>
+          <p className="text-sm text-gray-500">
+            Administration des formations
+          </p>
+        </div>
+
         <input
-          type="text"
+          placeholder="Rechercher..."
+          className="border bg-white px-3 py-2 rounded-lg text-sm w-72"
+          onChange={(e) => setSearch(e.target.value)}
+        />
+
+      </div>
+
+      {/* FORM (compact SaaS style) */}
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white border rounded-xl p-4 mb-6 grid grid-cols-5 gap-2"
+      >
+
+        <input
+          className="border rounded px-2 py-2 text-sm"
           placeholder="Titre"
           value={form.title}
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-          className="w-full border px-3 py-2 rounded"
-          required
+          onChange={(e) =>
+            setForm({ ...form, title: e.target.value })
+          }
         />
-        <textarea
-          placeholder="Description"
-          value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
-          className="w-full border px-3 py-2 rounded"
-          required
-        />
+
         <input
-          type="number"
-          placeholder="Prix (DA)"
+          className="border rounded px-2 py-2 text-sm"
+          placeholder="Prix"
           value={form.price}
-          onChange={(e) => setForm({ ...form, price: e.target.value })}
-          className="w-full border px-3 py-2 rounded"
-          required
+          onChange={(e) =>
+            setForm({ ...form, price: e.target.value })
+          }
         />
+
         <input
-          type="text"
+          className="border rounded px-2 py-2 text-sm"
           placeholder="Heures"
           value={form.hours}
-          onChange={(e) => setForm({ ...form, hours: e.target.value })}
-          className="w-full border px-3 py-2 rounded"
-          required
+          onChange={(e) =>
+            setForm({ ...form, hours: e.target.value })
+          }
         />
-        <select
-          value={form.category}
-          onChange={(e) => setForm({ ...form, category: e.target.value })}
-          className="w-full border px-3 py-2 rounded"
-          required
-        >
-          <option value="">Choisir une catégorie</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.name}>{c.name}</option>
-          ))}
-        </select>
 
-        <div className="flex gap-3 justify-end">
-          {editingId && (
-            <button
-              type="button"
-              onClick={() => setForm({ title: "", description: "", price: "", hours: "", category: "" }) || setEditingId(null)}
-              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-            >
-              Annuler
-            </button>
-          )}
-          <button type="submit" className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">
-            {editingId ? "Modifier le cours" : "Ajouter le cours"}
-          </button>
-        </div>
+        <input
+          className="border rounded px-2 py-2 text-sm"
+          placeholder="Catégorie"
+          value={form.category}
+          onChange={(e) =>
+            setForm({ ...form, category: e.target.value })
+          }
+        />
+
+        <button className="bg-orange-500 text-white rounded-lg text-sm hover:bg-orange-600">
+          {editingId ? "Modifier" : "Ajouter"}
+        </button>
+
       </form>
 
-      {/* Gestion catégories */}
-      <div className="mb-6 p-4 bg-white rounded shadow space-y-3">
-        <h2 className="font-bold mb-2 text-orange-600">Catégories</h2>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Nouvelle catégorie"
-            value={catName}
-            onChange={(e) => setCatName(e.target.value)}
-            className="border px-3 py-2 rounded flex-1"
-          />
-          <button onClick={handleAddCategory} className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">
-            Ajouter
-          </button>
-        </div>
-        <div className="flex flex-wrap gap-2 mt-2">
-          {categories.map((cat) => (
-            <div key={cat.id} className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded">
-              <span>{cat.name}</span>
-              <button
-                onClick={() => handleDeleteCategory(cat.id)}
-                className="text-red-500 hover:text-red-700"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
+      {/* TABLE PRO */}
+      <div className="bg-white border rounded-xl overflow-hidden">
+
+        <table className="w-full text-sm">
+
+          <thead className="bg-gray-100 text-gray-600 text-xs uppercase">
+            <tr>
+              <th className="text-left p-3">Cours</th>
+              <th>Catégorie</th>
+              <th>Prix</th>
+              <th>Heures</th>
+              <th className="text-right pr-4">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            {current.map((c) => (
+              <tr key={c.id} className="border-t hover:bg-gray-50">
+
+                <td className="p-3 font-medium text-gray-800">
+                  {c.title}
+                </td>
+
+                <td className="text-center text-gray-600">
+                  {c.category}
+                </td>
+
+                <td className="text-center text-orange-600 font-semibold">
+                  {c.price} DA
+                </td>
+
+                <td className="text-center text-gray-600">
+                  {c.hours}h
+                </td>
+
+                <td className="text-right pr-4">
+
+                  <button
+                    onClick={() => handleEdit(c)}
+                    className="text-blue-500 text-xs mr-3"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(c.id)}
+                    className="text-red-500 text-xs"
+                  >
+                    Delete
+                  </button>
+
+                </td>
+
+              </tr>
+            ))}
+
+          </tbody>
+
+        </table>
+
       </div>
 
-      {/* Message */}
-      {message && <p className="mb-4 text-green-600 font-semibold">{message}</p>}
+      {/* PAGINATION PRO */}
+      <div className="flex justify-center mt-5 gap-2">
 
-      {/* Liste des cours */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {courses.map((course) => (
-          <motion.div
-            key={course.id || course._id}
-            className="bg-white shadow rounded p-4 border border-orange-200 relative"
-            whileHover={{ scale: 1.02 }}
+        {Array.from({ length: totalPages }).map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setPage(i + 1)}
+            className={`px-3 py-1 text-sm rounded ${
+              page === i + 1
+                ? "bg-orange-500 text-white"
+                : "bg-white border"
+            }`}
           >
-            <h2 className="font-bold text-lg">{course.title}</h2>
-            <p className="text-gray-600">{course.description}</p>
-            <p className="text-orange-500 font-bold mt-2">Prix : {course.price} DA</p>
-            <p className="text-gray-500 mt-1">Heures : {course.hours}</p>
-            <p className="text-gray-700 mt-1">Catégorie : {course.category}</p>
-
-            <div className="absolute top-2 right-2 flex gap-2">
-              <button
-                onClick={() => handleEdit(course)}
-                className="px-2 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500"
-              >
-                Modifier
-              </button>
-              <button
-                onClick={() => handleDelete(course.id || course._id)}
-                className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-              >
-                Supprimer
-              </button>
-            </div>
-          </motion.div>
+            {i + 1}
+          </button>
         ))}
+
       </div>
+
     </div>
   );
 }

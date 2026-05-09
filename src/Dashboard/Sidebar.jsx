@@ -1,4 +1,3 @@
-// src/Dashboard/Sidebar.jsx
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -12,27 +11,34 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className="w-60 h-screen bg-white shadow-lg p-6 flex flex-col gap-6">
-      <h1 className="text-2xl font-bold text-orange-600">Admin Panel</h1>
+    <div className="fixed left-0 top-0 h-screen w-60 bg-white border-r shadow-sm p-6 flex flex-col gap-6">
 
-      {links.map((link) => (
-        <NavLink
-          key={link.name}
-          to={link.path}
-          className={({ isActive }) =>
-            `p-3 rounded-lg font-semibold text-lg hover:bg-orange-100 ${
-              isActive ? "bg-orange-200 text-orange-700" : "text-gray-700"
-            }`
-          }
-        >
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.1 }}
+      <h1 className="text-2xl font-bold text-orange-500">
+        Admin Panel
+      </h1>
+
+      <div className="flex flex-col gap-2 mt-4">
+
+        {links.map((link) => (
+          <NavLink
+            key={link.name}
+            to={link.path}
+            className={({ isActive }) =>
+              `px-3 py-2 rounded-lg text-sm font-medium transition ${
+                isActive
+                  ? "bg-orange-100 text-orange-600"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`
+            }
           >
-            {link.name}
-          </motion.div>
-        </NavLink>
-      ))}
+            <motion.div whileHover={{ x: 4 }}>
+              {link.name}
+            </motion.div>
+          </NavLink>
+        ))}
+
+      </div>
+
     </div>
   );
 }

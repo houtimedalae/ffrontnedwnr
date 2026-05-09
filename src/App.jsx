@@ -3,11 +3,11 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import Nav from './compo/nav';
 import Acceuil from './pages/Acceuil';
 import Courses from './pages/Cours';
-import Layout from './Dashboard/layout';
+import Layout from './Dashboard/Layout';
 import CoursManagement from './Dashboard/CoursManagement';
 import Event from './Dashboard/event';
 import PreInscriptions from './Dashboard/PreInscriptions';
-import Dashboard from './Dashboard/dashboard';
+import Dashboard from './Dashboard/Dashboard';
 import Login from './pages/Login';
 import About from '../src/pages/aboute';
 
