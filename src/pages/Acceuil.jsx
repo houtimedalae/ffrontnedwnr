@@ -14,7 +14,7 @@ export default function Acceuil() {
   // 📥 GET EVENTS
   useEffect(() => {
     axios
-      .get("https://backendwnr2.onrender.com/api/courses/api/events")
+      .get("https://backendwnr2.onrender.com/api/events")
       .then((res) => setEvents(res.data))
       .catch((err) => console.log(err));
   }, []);
