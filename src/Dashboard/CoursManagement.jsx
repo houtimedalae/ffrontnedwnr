@@ -2,10 +2,15 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 export default function CoursManagement() {
+  const API = "https://backendwnr2.onrender.com/api";
+
   const [courses, setCourses] = useState([]);
+  const [categories, setCategories] = useState([]);
+
+  const [newCategory, setNewCategory] = useState("");
+
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-
   const perPage = 10;
 
   const [form, setForm] = useState({
@@ -18,44 +23,59 @@ export default function CoursManagement() {
 
   const [editingId, setEditingId] = useState(null);
 
+  /* ================= FETCH ================= */
+
   const fetchCourses = async () => {
-    const res = await axios.get("https://backendwnr2.onrender.com/api/courses");
+    const res = await axios.get(`${API}/courses`);
     setCourses(res.data);
+  };
+
+  const fetchCategories = async () => {
+    const res = await axios.get(`${API}/categories`);
+    setCategories(res.data);
   };
 
   useEffect(() => {
     fetchCourses();
+    fetchCategories();
   }, []);
 
-  const filtered = courses.filter((c) =>
-    c.title.toLowerCase().includes(search.toLowerCase())
-  );
+  /* ================= CATEGORY ================= */
 
-  const totalPages = Math.ceil(filtered.length / perPage);
-  const current = filtered.slice(
-    (page - 1) * perPage,
-    page * perPage
-  );
+  const handleAddCategory = async () => {
+    if (!newCategory) return;
+
+    await axios.post(`${API}/categories`, { name: newCategory });
+
+    setNewCategory("");
+    fetchCategories();
+  };
+
+  /* ================= COURSE ================= */
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (editingId) {
-      await axios.put(
-        `http://localhost:5000/api/courses/${editingId}`,
-        form
-      );
+      await axios.put(`${API}/courses/${editingId}`, form);
     } else {
-      await axios.post("https://backendwnr2.onrender.com/api/courses", form);
+      await axios.post(`${API}/courses`, form);
     }
 
-    setForm({ title: "", description: "", price: "", hours: "", category: "" });
+    setForm({
+      title: "",
+      description: "",
+      price: "",
+      hours: "",
+      category: "",
+    });
+
     setEditingId(null);
     fetchCourses();
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`https://backendwnr2.onrender.com/api/courses/${id}`);
+    await axios.delete(`${API}/courses/${id}`);
     fetchCourses();
   };
 
@@ -64,85 +84,112 @@ export default function CoursManagement() {
     setEditingId(c.id);
   };
 
+  /* ================= FILTER ================= */
+
+  const filtered = courses.filter((c) =>
+    c.title.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filtered.length / perPage);
+
+  const current = filtered.slice(
+    (page - 1) * perPage,
+    page * perPage
+  );
+
   return (
     <div className="p-6 bg-[#f6f7fb] min-h-screen">
 
       {/* HEADER */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between mb-6">
 
         <div>
-          <h1 className="text-xl font-bold text-gray-800">
-            Gestion des cours
-          </h1>
-          <p className="text-sm text-gray-500">
-            Administration des formations
-          </p>
+          <h1 className="text-xl font-bold">Gestion des cours</h1>
+          <p className="text-sm text-gray-500">Admin panel</p>
         </div>
 
         <input
           placeholder="Rechercher..."
-          className="border bg-white px-3 py-2 rounded-lg text-sm w-72"
+          className="border px-3 py-2 rounded-lg text-sm w-72"
           onChange={(e) => setSearch(e.target.value)}
         />
 
       </div>
 
-      {/* FORM (compact SaaS style) */}
+      {/* CATEGORY CREATION */}
+      <div className="bg-white p-4 rounded-xl mb-4 flex gap-2">
+
+        <input
+          placeholder="Nouvelle catégorie"
+          value={newCategory}
+          onChange={(e) => setNewCategory(e.target.value)}
+          className="border px-3 py-2 rounded text-sm flex-1"
+        />
+
+        <button
+          onClick={handleAddCategory}
+          className="bg-orange-500 text-white px-4 rounded"
+        >
+          Ajouter
+        </button>
+
+      </div>
+
+      {/* FORM */}
       <form
         onSubmit={handleSubmit}
-        className="bg-white border rounded-xl p-4 mb-6 grid grid-cols-5 gap-2"
+        className="bg-white p-4 rounded-xl mb-6 grid grid-cols-5 gap-2"
       >
 
         <input
-          className="border rounded px-2 py-2 text-sm"
           placeholder="Titre"
           value={form.title}
-          onChange={(e) =>
-            setForm({ ...form, title: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, title: e.target.value })}
+          className="border px-2 py-2 rounded text-sm"
         />
 
         <input
-          className="border rounded px-2 py-2 text-sm"
           placeholder="Prix"
           value={form.price}
-          onChange={(e) =>
-            setForm({ ...form, price: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, price: e.target.value })}
+          className="border px-2 py-2 rounded text-sm"
         />
 
         <input
-          className="border rounded px-2 py-2 text-sm"
           placeholder="Heures"
           value={form.hours}
-          onChange={(e) =>
-            setForm({ ...form, hours: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, hours: e.target.value })}
+          className="border px-2 py-2 rounded text-sm"
         />
 
-        <input
-          className="border rounded px-2 py-2 text-sm"
-          placeholder="Catégorie"
+        {/* 🔥 SELECT CATEGORY */}
+        <select
           value={form.category}
-          onChange={(e) =>
-            setForm({ ...form, category: e.target.value })
-          }
-        />
+          onChange={(e) => setForm({ ...form, category: e.target.value })}
+          className="border px-2 py-2 rounded text-sm"
+        >
+          <option value="">Choisir catégorie</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.name}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
 
-        <button className="bg-orange-500 text-white rounded-lg text-sm hover:bg-orange-600">
+        <button className="bg-orange-500 text-white rounded text-sm">
           {editingId ? "Modifier" : "Ajouter"}
         </button>
 
       </form>
 
-      {/* TABLE PRO */}
-      <div className="bg-white border rounded-xl overflow-hidden">
+      {/* TABLE */}
+      <div className="bg-white rounded-xl overflow-hidden">
 
         <table className="w-full text-sm">
 
-          <thead className="bg-gray-100 text-gray-600 text-xs uppercase">
+          <thead className="bg-gray-100 text-xs uppercase">
             <tr>
-              <th className="text-left p-3">Cours</th>
+              <th className="p-3 text-left">Cours</th>
               <th>Catégorie</th>
               <th>Prix</th>
               <th>Heures</th>
@@ -155,21 +202,12 @@ export default function CoursManagement() {
             {current.map((c) => (
               <tr key={c.id} className="border-t hover:bg-gray-50">
 
-                <td className="p-3 font-medium text-gray-800">
-                  {c.title}
-                </td>
-
-                <td className="text-center text-gray-600">
-                  {c.category}
-                </td>
-
-                <td className="text-center text-orange-600 font-semibold">
+                <td className="p-3">{c.title}</td>
+                <td className="text-center">{c.category}</td>
+                <td className="text-center text-orange-600">
                   {c.price} DA
                 </td>
-
-                <td className="text-center text-gray-600">
-                  {c.hours}h
-                </td>
+                <td className="text-center">{c.hours}</td>
 
                 <td className="text-right pr-4">
 
@@ -198,17 +236,17 @@ export default function CoursManagement() {
 
       </div>
 
-      {/* PAGINATION PRO */}
-      <div className="flex justify-center mt-5 gap-2">
+      {/* PAGINATION */}
+      <div className="flex justify-center mt-4 gap-2">
 
         {Array.from({ length: totalPages }).map((_, i) => (
           <button
             key={i}
             onClick={() => setPage(i + 1)}
-            className={`px-3 py-1 text-sm rounded ${
+            className={`px-3 py-1 rounded ${
               page === i + 1
                 ? "bg-orange-500 text-white"
-                : "bg-white border"
+                : "border"
             }`}
           >
             {i + 1}
