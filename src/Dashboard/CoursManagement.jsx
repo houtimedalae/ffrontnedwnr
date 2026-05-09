@@ -19,7 +19,7 @@ export default function CoursManagement() {
   const [editingId, setEditingId] = useState(null);
 
   const fetchCourses = async () => {
-    const res = await axios.get("http://localhost:5000/api/courses");
+    const res = await axios.get("https://backendwnr2.onrender.com/api/courses");
     setCourses(res.data);
   };
 
@@ -55,7 +55,7 @@ export default function CoursManagement() {
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/api/courses/${id}`);
+    await axios.delete(`https://backendwnr2.onrender.com/api/courses/api/courses/${id}`);
     fetchCourses();
   };
 
